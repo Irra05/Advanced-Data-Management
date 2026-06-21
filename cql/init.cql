@@ -39,3 +39,17 @@ CREATE TABLE IF NOT EXISTS relay_events (
 
 -- TODO: add a second sensor_readings table or materialized view
 -- optimised for the cross-network dashboard query (pattern 2)
+
+
+CREATE TABLE IF NOT EXISTS network_readings (
+    bucket_date DATE,
+    reading_time TIMESTAMP,
+    sensor_id TEXT,
+    metric_type TEXT,
+    value FLOAT,
+    unit TEXT,
+    quality_flag TINYINT,
+
+    PRIMARY KEY ((bucket_date), reading_time, sensor_id)
+)
+WITH CLUSTERING ORDER BY (reading_time DESC);
