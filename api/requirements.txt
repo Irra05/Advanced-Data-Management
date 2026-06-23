@@ -14,3 +14,7 @@ redis
 pydantic
 
 python-dotenv
+
+requests
+
+faker
