@@ -9,6 +9,10 @@ from router.billing import router as billing_router
 from router.alerts import router as alerts_router
 
 from db.neo4j import close_driver
+from db.mongo import close_mongo
+from db.postgres import close_pool
+from db.cassandra import close_session
+from db.redis import close_redis
 
 
 @asynccontextmanager
@@ -17,6 +21,10 @@ async def lifespan(app: FastAPI):
     yield
 
     await close_driver()
+    await close_mongo()
+    await close_pool()
+    close_session()
+    await close_redis()
 
 
 app = FastAPI(
