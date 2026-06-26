@@ -123,21 +123,41 @@ services:
       - .env
 
     depends_on:
-      - timeseries-db
-      - graph-db
-      - catalog-db
-      - billing-db
-      - cache
+      cassandra-init:
+        condition: service_completed_successfully
+
+      graph-db:
+        condition: service_healthy
+
+      catalog-db:
+        condition: service_started
+
+      billing-db:
+        condition: service_started
+
+      cache:
+        condition: service_started
 
   seed:
     build: ./api
+    restart: "no"
 
     depends_on:
-      - cassandra-init
-      - graph-db
-      - catalog-db
-      - billing-db
-      - cache
+
+      cassandra-init:
+        condition: service_completed_successfully
+
+      graph-db:
+        condition: service_healthy
+
+      catalog-db:
+        condition: service_started
+
+      billing-db:
+        condition: service_started
+
+      cache:
+        condition: service_started
 
     env_file:
       - .env

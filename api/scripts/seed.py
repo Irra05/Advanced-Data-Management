@@ -210,3 +210,231 @@ def seed_mongo():
         )
 
     client.close()
+
+
+
+def seed_postgres():
+
+    conn = psycopg2.connect(
+        host=os.getenv("POSTGRES_HOST", "billing-db"),
+        database=os.getenv("POSTGRES_DB", "gridsense"),
+        user=os.getenv("POSTGRES_USER", "admin"),
+        password=os.getenv("POSTGRES_PASSWORD", "admin123")
+    )
+
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS consumer_accounts (
+        account_id SERIAL PRIMARY KEY,
+        customer_name TEXT,
+        email TEXT UNIQUE
+    )
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS invoices (
+        invoice_id SERIAL PRIMARY KEY,
+        account_id INTEGER REFERENCES consumer_accounts(account_id),
+        amount NUMERIC,
+        status TEXT
+    )
+    """)
+
+    conn.commit()
+
+    for i in range(100):
+
+        name = fake.name()
+        email = f"user{i}@gridsense.com"
+
+        cur.execute("""
+        INSERT INTO consumer_accounts (
+            customer_name,
+            email
+        )
+        VALUES (%s,%s)
+        ON CONFLICT (email) DO NOTHING
+        """,
+        (name, email))
+
+    conn.commit()
+
+    cur.execute("""
+    SELECT account_id
+    FROM consumer_accounts
+    """)
+
+    accounts = cur.fetchall()
+
+    for account in accounts:
+
+        account_id = account[0]
+
+        cur.execute("""
+        INSERT INTO invoices (
+            account_id,
+            amount,
+            status
+        )
+        SELECT %s,%s,%s
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM invoices
+            WHERE account_id=%s
+        )
+        """,
+        (
+            account_id,
+            round(random.uniform(20, 300), 2),
+            random.choice(
+                ["PAID", "PENDING", "OVERDUE"]
+            ),
+            account_id
+        ))
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+
+
+def seed_cassandra():
+
+    cluster = Cluster(
+        [os.getenv(
+            "CASSANDRA_HOST",
+            "timeseries-db"
+        )]
+    )
+
+    session = cluster.connect()
+
+    session.execute("""
+    CREATE KEYSPACE IF NOT EXISTS gridsense
+    WITH replication = {
+        'class':'SimpleStrategy',
+        'replication_factor':1
+    }
+    """)
+
+    session.set_keyspace("gridsense")
+
+    session.execute("""
+    CREATE TABLE IF NOT EXISTS sensor_readings (
+
+        sensor_id TEXT,
+
+        reading_time TIMESTAMP,
+
+        metric_type TEXT,
+
+        value FLOAT,
+
+        unit TEXT,
+
+        quality_flag TINYINT,
+
+        PRIMARY KEY (
+            (sensor_id),
+            reading_time
+        )
+
+    ) WITH CLUSTERING ORDER BY (
+        reading_time DESC
+    )
+    """)
+
+    insert_query = session.prepare("""
+    INSERT INTO sensor_readings (
+        sensor_id,
+        reading_time,
+        metric_type,
+        value,
+        unit,
+        quality_flag
+    )
+    VALUES (
+        ?, ?, ?, ?, ?, ?
+    )
+    """)
+
+    sensor_ids = [
+        f"SENSOR_{i:03d}"
+        for i in range(1, 21)
+    ]
+
+    base_time = datetime.now()
+
+    for sensor_id in sensor_ids:
+
+        existing = session.execute(
+            """
+            SELECT COUNT(*)
+            FROM sensor_readings
+            WHERE sensor_id=%s
+            """,
+            [sensor_id]
+        )
+
+        count = existing.one()[0]
+
+        if count >= 2500:
+            continue
+
+        for i in range(2500):
+
+            reading_time = (
+                base_time -
+                timedelta(minutes=i)
+            )
+
+            session.execute(
+                insert_query,
+                (
+                    sensor_id,
+                    reading_time,
+                    random.choice([
+                        "voltage",
+                        "current",
+                        "temperature",
+                        "power_factor"
+                    ]),
+                    round(
+                        random.uniform(
+                            10,
+                            250
+                        ),
+                        2
+                    ),
+                    "unit",
+                    0
+                )
+            )
+
+    cluster.shutdown()
+
+
+
+
+
+def main():
+
+    print("Seeding Neo4j...")
+    seed_neo4j()
+
+    print("Seeding MongoDB...")
+    seed_mongo()
+
+    print("Seeding PostgreSQL...")
+    seed_postgres()
+
+    print("Seeding Cassandra...")
+    seed_cassandra()
+
+    print("Seed completed.")
+
+
+if __name__ == "__main__":
+    main()

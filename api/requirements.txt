@@ -18,3 +18,8 @@ python-dotenv
 requests
 
 faker
+
+pymongo
+psycopg2-binary
+
+python-multipart

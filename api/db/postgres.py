@@ -28,3 +28,5 @@ async def close_pool():
 
     if _pool:
         await _pool.close()
+
+    _pool = None

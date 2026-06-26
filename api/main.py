@@ -2,11 +2,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from router.sensors import router as sensors_router
-from router.grid import router as grid_router
-from router.equipment import router as equipment_router
-from router.billing import router as billing_router
-from router.alerts import router as alerts_router
+from routers.sensors import router as sensors_router
+from routers.grid import router as grid_router
+from routers.equipment import router as equipment_router
+from routers.billing import router as billing_router
+from routers.alerts import router as alerts_router
 
 from db.neo4j import close_driver
 from db.mongo import close_mongo

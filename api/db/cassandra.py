@@ -28,6 +28,13 @@ def get_session():
 def close_session():
 
     global _cluster
+    global _session
+
+    if _session:
+        _session.shutdown()
 
     if _cluster:
         _cluster.shutdown()
+
+    _session = None
+    _cluster = None
