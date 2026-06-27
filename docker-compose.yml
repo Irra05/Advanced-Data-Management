@@ -162,10 +162,6 @@ services:
     env_file:
       - .env
 
-    volumes:
-      - ./scripts:/api/scripts
-      - ./neo4j/import:/neo4j/import
-
     command: python scripts/seed.py
 
 volumes:
