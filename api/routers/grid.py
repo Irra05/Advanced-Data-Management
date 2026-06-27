@@ -168,6 +168,43 @@ async def create_node(node: NodeCreate):
     return {"created": record["node_id"]}
 
 
+class RelationshipCreate(BaseModel):
+    from_node_id: str
+    to_node_id: str
+    rel_type: str       # "FEEDS", "SUPPLIES", "CONNECTS_TO"
+    properties: dict = {}
+
+@router.post("/relationships", status_code=201)
+async def create_relationship(rel: RelationshipCreate):
+
+    allowed_types = {"FEEDS", "SUPPLIES", "CONNECTS_TO"}
+    if rel.rel_type not in allowed_types:
+        raise HTTPException(status_code=400, detail=f"rel_type must be one of {allowed_types}")
+
+    cypher = f"""
+        MATCH (a {{node_id: $from_id}})
+        MATCH (b {{node_id: $to_id}})
+        MERGE (a)-[r:{rel.rel_type}]->(b)
+        SET r += $props
+        RETURN type(r) AS rel_type
+    """
+
+    driver = get_driver()
+    async with driver.session(database="neo4j") as session:
+        result = await session.run(
+            cypher,
+            from_id=rel.from_node_id,
+            to_id=rel.to_node_id,
+            props=rel.properties
+        )
+        record = await result.single()
+
+    if not record:
+        raise HTTPException(status_code=404, detail="One or both nodes not found")
+
+    return {"created": record["rel_type"], "from": rel.from_node_id, "to": rel.to_node_id}
+
+
 # =====================================================
 # Helper Functions
 # =====================================================
