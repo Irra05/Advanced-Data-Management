@@ -15,10 +15,8 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     reading_time TIMESTAMP,
     metric_type TEXT,
     -- 'voltage', 'current', 'power_factor', 'temp'
-    value
-    FLOAT,
-    unit
-    TEXT,
+    value FLOAT,
+    unit TEXT,
     quality_flag TINYINT, -- 0=good, 1=suspect, 2=bad
     PRIMARY KEY ((sensor_id), reading_time)
 ) WITH CLUSTERING ORDER BY (reading_time DESC)
