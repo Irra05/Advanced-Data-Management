@@ -311,40 +311,9 @@ def seed_cassandra():
 
     session = cluster.connect()
 
-    session.execute("""
-    CREATE KEYSPACE IF NOT EXISTS gridsense
-    WITH replication = {
-        'class':'SimpleStrategy',
-        'replication_factor':1
-    }
-    """)
-
+    
     session.set_keyspace("gridsense")
 
-    session.execute("""
-    CREATE TABLE IF NOT EXISTS sensor_readings (
-
-        sensor_id TEXT,
-
-        reading_time TIMESTAMP,
-
-        metric_type TEXT,
-
-        value FLOAT,
-
-        unit TEXT,
-
-        quality_flag TINYINT,
-
-        PRIMARY KEY (
-            (sensor_id),
-            reading_time
-        )
-
-    ) WITH CLUSTERING ORDER BY (
-        reading_time DESC
-    )
-    """)
 
     insert_query = session.prepare("""
     INSERT INTO sensor_readings (
