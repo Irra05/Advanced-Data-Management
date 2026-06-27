@@ -2,12 +2,41 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 
 from db.cassandra import get_session
+from models.cassandra import SensorReading
+from typing import List
+
 
 router = APIRouter(
     prefix="/sensors",
     tags=["Sensors"]
 )
 
+
+@router.post("/readings", status_code=201)
+async def ingest_readings(readings: List[SensorReading]):
+
+    if not readings:
+        raise HTTPException(status_code=400, detail="Empty payload")
+
+    session = get_session()
+
+    insert = session.prepare("""
+        INSERT INTO gridsense.sensor_readings
+            (sensor_id, reading_time, metric_type, value, unit, quality_flag)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """)
+
+    for r in readings:
+        session.execute(insert, (
+            r.sensor_id,
+            r.reading_time,
+            r.metric_type,
+            r.value,
+            r.unit,
+            r.quality_flag
+        ))
+
+    return {"inserted": len(readings)}
 
 @router.get("/{sensor_id}/readings")
 async def get_sensor_readings(
