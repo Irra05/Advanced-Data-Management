@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "9042:9042"
+      - "9043:9042"
 
     environment:
       CASSANDRA_CLUSTER_NAME: "GridSenseCluster"
@@ -46,8 +46,8 @@ services:
     restart: unless-stopped
 
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "7475:7474"
+      - "7688:7687"
 
     environment:
       NEO4J_AUTH: "neo4j/${NEO4J_PASSWORD}"
@@ -71,7 +71,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "27017:27017"
+      - "27018:27017"
 
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
@@ -87,7 +87,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -104,7 +104,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "6379:6379"
+      - "6380:6379"
 
     volumes:
       - redis_data:/data
@@ -163,8 +163,8 @@ services:
       - .env
 
     volumes:
-      - ./scripts:/app/scripts
-      - ./neo4j/import:/app/neo4j/import
+      - ./scripts:/api/scripts
+      - ./neo4j/import:/neo4j/import
 
     command: python scripts/seed.py
 
