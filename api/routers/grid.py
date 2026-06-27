@@ -140,6 +140,32 @@ async def get_restore_paths(node_id: str, max_depth: int = 6):
         restore_paths=paths,
         total_paths=len(paths)
     )
+    
+    
+class NodeCreate(BaseModel):
+    node_id: str
+    label: str          # "Substation", "Transformer", "SmartMeter", etc.
+    properties: dict = {}
+    
+@router.post("/nodes", status_code=201)
+async def create_node(node: NodeCreate):
+
+    allowed_labels = {"GridSupplyPoint", "Substation", "Transformer", "SmartMeter"}
+    if node.label not in allowed_labels:
+        raise HTTPException(status_code=400, detail=f"Label must be one of {allowed_labels}")
+
+    cypher = f"""
+        MERGE (n:{node.label} {{node_id: $node_id}})
+        SET n += $props
+        RETURN n.node_id AS node_id
+    """
+
+    driver = get_driver()
+    async with driver.session(database="neo4j") as session:
+        result = await session.run(cypher, node_id=node.node_id, props=node.properties)
+        record = await result.single()
+
+    return {"created": record["node_id"]}
 
 
 # =====================================================
