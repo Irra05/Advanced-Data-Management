@@ -1,5 +1,6 @@
 import os
 import random
+import json
 from datetime import datetime, timedelta
 
 from faker import Faker
@@ -227,17 +228,31 @@ def seed_postgres():
     cur.execute("""
     CREATE TABLE IF NOT EXISTS consumer_accounts (
         account_id SERIAL PRIMARY KEY,
-        customer_name TEXT,
-        email TEXT UNIQUE
+        premise_id TEXT UNIQUE NOT NULL,
+        customer_name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        tariff_rules JSONB DEFAULT '{}'
     )
+    """)
+    
+    cur.execute("""
+    CREATE INDEX IF NOT EXISTS idx_tariff_gin
+    ON consumer_accounts USING GIN (tariff_rules)
     """)
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS invoices (
-        invoice_id SERIAL PRIMARY KEY,
-        account_id INTEGER REFERENCES consumer_accounts(account_id),
-        amount NUMERIC,
-        status TEXT
+        invoice_id             SERIAL PRIMARY KEY,
+        account_id             INTEGER REFERENCES consumer_accounts(account_id),
+        billing_period_start   DATE,
+        billing_period_end     DATE,
+        consumption_kwh        NUMERIC,
+        base_charge            NUMERIC,
+        energy_charge          NUMERIC,
+        regulatory_surcharge   NUMERIC,
+        time_of_use_adjustment NUMERIC,
+        total_amount           NUMERIC,
+        status                 TEXT DEFAULT 'PENDING'
     )
     """)
 
@@ -245,18 +260,22 @@ def seed_postgres():
 
     for i in range(100):
 
+        premise_id = f"PREM_{i+10001}"
         name = fake.name()
         email = f"user{i}@gridsense.com"
+        tariff_rules = json.dumps({
+            "band": random.choice(["A","B","C"]), 
+            "tou_enabled": random.choice([True, False])
+        })
 
         cur.execute("""
         INSERT INTO consumer_accounts (
-            customer_name,
-            email
+            premise_id, customer_name, email, tariff_rules
         )
-        VALUES (%s,%s)
+        VALUES (%s,%s,%s,%s)
         ON CONFLICT (email) DO NOTHING
         """,
-        (name, email))
+        (premise_id, name, email, tariff_rules))
 
     conn.commit()
 
@@ -274,22 +293,34 @@ def seed_postgres():
         cur.execute("""
         INSERT INTO invoices (
             account_id,
-            amount,
+            billing_period_start,
+            billing_period_end,
+            consumption_kwh,
+            base_charge,
+            energy_charge,
+            regulatory_surcharge,
+            time_of_use_adjustment,
+            total_amount,
             status
         )
-        SELECT %s,%s,%s
+        SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
         WHERE NOT EXISTS (
-            SELECT 1
-            FROM invoices
-            WHERE account_id=%s
+            SELECT 1 
+            FROM invoices 
+            WHERE account_id = %s
         )
         """,
         (
             account_id,
+            fake.date_between(start_date="-3m", end_date="-1m"),
+            fake.date_between(start_date="-1m", end_date="today"),
+            round(random.uniform(50, 500), 2),
+            9.00,
+            round(random.uniform(10, 80), 2),
+            round(random.uniform(1, 5), 2),
+            round(random.uniform(-5, 5), 2),
             round(random.uniform(20, 300), 2),
-            random.choice(
-                ["PAID", "PENDING", "OVERDUE"]
-            ),
+            random.choice(["PAID", "PENDING", "OVERDUE"]),
             account_id
         ))
 
