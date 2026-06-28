@@ -12,7 +12,7 @@ router = APIRouter(
 
 
 @router.get("/account/{premise_id}")
-async def get_account(premise_id: int):
+async def get_account(premise_id: str):
 
     pool = await get_pool()
 
@@ -21,7 +21,7 @@ async def get_account(premise_id: int):
             """
             SELECT *
             FROM consumer_accounts
-            WHERE account_id = $1
+            WHERE premise_id = $1
             """,
             premise_id
         )
