@@ -1,9 +1,11 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class Equipment(BaseModel):
+    model_config = ConfigDict(extra='allow')
+    
 
     asset_id: str
 
