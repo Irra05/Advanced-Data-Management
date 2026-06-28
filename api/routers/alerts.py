@@ -2,6 +2,8 @@ from fastapi import APIRouter
 
 from db.redis import get_redis
 
+import json
+
 router = APIRouter(
     prefix="/alerts",
     tags=["Alerts"]
@@ -19,7 +21,12 @@ async def publish_alert(
         "grid_alerts",
         message
     )
+    
+    # Add to active list with a max size of 100 characters
+    await redis_client.lpush("active_alerts", message)
+    await redis_client.ltrim("active_alerts", 0, 99)
 
+    # If the endpoint /latest is not needed, this code isn't needed either
     await redis_client.set(
         "latest_alert",
         message
@@ -30,6 +37,21 @@ async def publish_alert(
         "message": message
     }
 
+#   Same as /latest but it gets a range with active alerts 
+#   instead of just the latest alert
+@router.get("/active")
+async def get_active_alerts():
+
+    redis = get_redis()
+    alerts = await redis.lrange("active_alerts", 0, -1)
+
+    return {
+        "count": len(alerts),
+        "alerts": alerts
+    }
+
+
+#!  Is this endpoint needed?
 
 @router.get("/latest")
 async def get_latest_alert():
