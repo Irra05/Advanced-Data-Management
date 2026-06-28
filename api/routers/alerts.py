@@ -22,7 +22,7 @@ async def publish_alert(
         message
     )
     
-    # Add to active list with a max size of 100 characters
+    # Add to active list with a max size of 100 items
     await redis_client.lpush("active_alerts", message)
     await redis_client.ltrim("active_alerts", 0, 99)
 

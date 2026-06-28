@@ -21,6 +21,8 @@ class Equipment(BaseModel):
 
 
 class EquipmentUpdate(BaseModel):
+    model_config = ConfigDict(extra='allow')
+
 
     manufacturer: Optional[str] = None
 
