@@ -21,8 +21,7 @@ NEO4J_URI = os.getenv(
 )
 
 NEO4J_PASSWORD = os.getenv(
-    "NEO4J_PASSWORD",
-    "admin123"
+    "NEO4J_PASSWORD"
 )
 
 def seed_neo4j():
@@ -128,13 +127,11 @@ def seed_neo4j():
 def seed_mongo():
 
     mongo_user = os.getenv(
-        "MONGO_USER",
-        "admin"
+        "MONGO_USER"
     )
 
     mongo_password = os.getenv(
-        "MONGO_PASSWORD",
-        "admin123"
+        "MONGO_PASSWORD"
     )
 
     mongo_host = os.getenv(
@@ -220,7 +217,7 @@ def seed_postgres():
         host=os.getenv("POSTGRES_HOST", "billing-db"),
         database=os.getenv("POSTGRES_DB", "gridsense"),
         user=os.getenv("POSTGRES_USER", "admin"),
-        password=os.getenv("POSTGRES_PASSWORD", "admin123")
+        password=os.getenv("POSTGRES_PASSWORD")
     )
 
     cur = conn.cursor()

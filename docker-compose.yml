@@ -105,7 +105,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "6379:6379"
+      - "6379:6379"   # <- Change to 6380:6379 if the 6379 port is being used
 
     volumes:
       - redis_data:/data

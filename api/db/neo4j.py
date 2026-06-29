@@ -16,10 +16,7 @@ def init_driver():
             "bolt://graph-db:7687"
         )
 
-        password = os.getenv(
-            "NEO4J_PASSWORD",
-            "admin123"
-        )
+        password = os.getenv("NEO4J_PASSWORD")
 
         _driver = AsyncGraphDatabase.driver(
             uri,

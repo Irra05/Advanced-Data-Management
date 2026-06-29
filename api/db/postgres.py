@@ -14,7 +14,7 @@ async def get_pool():
             host=os.getenv("POSTGRES_HOST", "billing-db"),
             database=os.getenv("POSTGRES_DB", "gridsense"),
             user=os.getenv("POSTGRES_USER", "admin"),
-            password=os.getenv("POSTGRES_PASSWORD", "admin123"),
+            password=os.getenv("POSTGRES_PASSWORD"),
             min_size=1,
             max_size=5
         )

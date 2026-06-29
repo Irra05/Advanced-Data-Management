@@ -14,7 +14,7 @@ def get_database():
     if _database is None:
 
         user = os.getenv("MONGO_USER", "admin")
-        password = os.getenv("MONGO_PASSWORD", "admin123")
+        password = os.getenv("MONGO_PASSWORD")
         host = os.getenv("MONGO_HOST", "catalog-db")
 
         uri = (
