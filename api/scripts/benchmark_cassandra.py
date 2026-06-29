@@ -6,7 +6,7 @@ from cassandra.cluster import Cluster
 from cassandra.query import SimpleStatement
 from cassandra import ConsistencyLevel
 
-cluster = Cluster(["localhost"])
+cluster = Cluster(["localhost"], port=9042) # <- Change port 9043 if the 9042 port is being used
 session = cluster.connect("gridsense")
 
 consistency_levels = {

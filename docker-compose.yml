@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "9043:9042"
+      - "9042:9042"   # <- Change to 9043:9042 if the 9042 port is being used
 
     environment:
       CASSANDRA_CLUSTER_NAME: "GridSenseCluster"
@@ -46,8 +46,8 @@ services:
     restart: unless-stopped
 
     ports:
-      - "7475:7474"
-      - "7688:7687"
+      - "7474:7474"   # <- Change to 7475:7474 if the 7474 port is being used
+      - "7687:7687"   # <- Change to 7688:7687 if the 7687 port is being used
 
     environment:
       NEO4J_AUTH: "neo4j/${NEO4J_PASSWORD}"
@@ -71,7 +71,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "27018:27017"
+      - "27017:27017" # <- Change to 27018:27017 if the 27017 port is being used
 
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
@@ -87,7 +87,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "5433:5432"
+      - "5432:5432"   # <- Change to 5433:5432 if the 5432 port is being used
 
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -105,7 +105,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "6380:6379"
+      - "6379:6379"
 
     volumes:
       - redis_data:/data

@@ -20,3 +20,6 @@ build/
 # Other stuff...
 .files/
 .old/
+
+# Benchmarks
+*.png
